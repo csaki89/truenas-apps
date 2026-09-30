@@ -1,0 +1,68 @@
+name: update_catalog
+
+# Builds trains/ and catalog.json from ix-dev/ with the official TrueNAS tooling
+# (the same image and commands as truenas/apps). Never edit trains/ by hand.
+
+concurrency:
+  group: update_catalog
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ix-dev/**
+      - library/**
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish_catalog:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/truenas/apps_validation:latest
+      env:
+        FAKE_ENV: 1
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Mark workspace as a safe directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      # Vendors library/<lib_version> into templates/library and fills lib_version_hash.
+      - name: Vendor library
+        run: /usr/local/bin/apps_catalog_hash_generate --path "$GITHUB_WORKSPACE"
+      - name: Validate apps
+        run: /usr/local/bin/apps_dev_charts_validate validate --path "$GITHUB_WORKSPACE"
+
+      # ix-dev/ -> trains/ (a new version directory per bumped version, old ones stay).
+      - name: Publish trains
+        run: /usr/local/bin/apps_catalog_update publish --path "$GITHUB_WORKSPACE"
+      - name: Commit trains
+        id: commit_trains
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "Publish new changes in catalog [skip ci]"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # trains/ -> catalog.json
+      - name: Update catalog.json
+        if: steps.commit_trains.outputs.changed == 'true'
+        run: /usr/local/bin/apps_catalog_update update --path "$GITHUB_WORKSPACE"
+      - name: Commit and push
+        if: steps.commit_trains.outputs.changed == 'true'
+        run: |
+          git add -A
+          git diff --cached --quiet || git commit -m "Update catalog.json [skip ci]"
+          git push

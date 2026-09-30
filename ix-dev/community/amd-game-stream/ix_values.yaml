@@ -1,0 +1,9 @@
+# Default image. The repository and tag can be overridden in the app form
+# (amd_game_stream.image.*), so a locally built image works too.
+images:
+  image:
+    repository: amd-game-stream
+    tag: 1.0.0
+
+consts:
+  container_name: amd-game-stream

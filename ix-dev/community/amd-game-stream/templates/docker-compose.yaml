@@ -1,0 +1,67 @@
+{#
+  The image (repository/tag/pull policy) is user-configurable, so build a copy of
+  the values with the chosen image before the renderer is created.
+#}
+{% set img = values.amd_game_stream.image %}
+{% set v = dict(values, images={"image": {"repository": img.repository, "tag": img.tag}}) %}
+{% set tpl = ix_lib.base.render.Render(v) %}
+
+{% set c1 = tpl.add_container(values.consts.container_name, "image") %}
+
+{# Starts as root (init scripts, udev, Xorg); the image drops to PUID/PGID itself. #}
+{% do c1.clear_caps() %}
+{% do c1.remove_security_opt("no-new-privileges") %}
+{# Steam's pressure-vessel (bwrap) sandbox needs this. #}
+{% do c1.add_security_opt("seccomp", "unconfined") %}
+{% do c1.set_pull_policy(img.pull_policy) %}
+{% do c1.set_shm_size_mb(values.amd_game_stream.shm_size) %}
+
+{# Host network is required for Sunshine/Moonlight discovery. #}
+{% do c1.set_network_mode("host") %}
+
+{#
+  Devices, not bind mounts: a bind-mounted node is visible but fails with
+  "Operation not permitted" (no cgroup device rule).
+#}
+{% do c1.devices.add_device("/dev/dri", "/dev/dri", allow_disallowed=True) %}
+{% do c1.devices.add_device("/dev/uinput", "/dev/uinput") %}
+{% do c1.devices.add_device("/dev/input", "/dev/input") %}
+{# Sunshine's virtual input devices (major 13) appear after container start. #}
+{% do c1.add_device_cgroup_rule("c 13:* rmw") %}
+
+{% do c1.environment.add_env("PUID", values.run_as.user) %}
+{% do c1.environment.add_env("PGID", values.run_as.group) %}
+{% do c1.environment.add_env("SUNSHINE_USER", values.amd_game_stream.sunshine_user) %}
+{% do c1.environment.add_env("SUNSHINE_PASS", values.amd_game_stream.sunshine_pass) %}
+{% do c1.environment.add_env("ENABLE_VNC", values.amd_game_stream.enable_vnc) %}
+{% do c1.environment.add_env("VNC_PASSWORD", values.amd_game_stream.vnc_password) %}
+{% do c1.environment.add_env("PORT_VNC", values.network.vnc_port) %}
+{% do c1.environment.add_env("PORT_NOVNC", values.network.novnc_port) %}
+{% do c1.environment.add_env("STEAM_ARGS", values.amd_game_stream.steam_args) %}
+{% if values.amd_game_stream.user_password %}
+  {% do c1.environment.add_env("USER_PASSWORD", values.amd_game_stream.user_password) %}
+{% endif %}
+{% do c1.environment.add_env("STEAM_AUTOSTART", values.amd_game_stream.steam_autostart) %}
+{% if values.amd_game_stream.amd_gpu_pci %}
+  {% do c1.environment.add_env("AMD_GPU_PCI", values.amd_game_stream.amd_gpu_pci) %}
+{% endif %}
+{% if values.amd_game_stream.enable_romm_sync %}
+  {% do c1.environment.add_env("ENABLE_ROMM_SYNC", true) %}
+{% endif %}
+{% do c1.environment.add_user_envs(values.amd_game_stream.additional_envs) %}
+
+{% do c1.add_storage("/home/default", values.storage.home) %}
+{% if values.storage.games.enabled %}
+  {% do c1.add_storage("/mnt/games", values.storage.games) %}
+{% endif %}
+{% if values.storage.roms.enabled %}
+  {% do c1.add_storage("/mnt/roms", values.storage.roms) %}
+{% endif %}
+
+{# Host network: ports are not published, so the portal is informational only. #}
+{% do tpl.portals.add(
+  {"bind_mode": "published"},
+  {"name": "Sunshine Web UI", "scheme": "https", "port": values.network.sunshine_port}
+) %}
+
+{{ tpl.render() | tojson }}

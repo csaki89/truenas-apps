@@ -1,0 +1,39 @@
+annotations:
+  min_scale_version: 24.10.2.2
+app_version: 1.0.0
+capabilities: []
+categories:
+- games
+changelog_url: https://github.com/csaki89/amd-game-stream/releases
+date_added: '2026-09-30'
+description: Headless game streaming on an AMD GPU (Xorg + amdgpu + DRI3, Sunshine,
+  Steam, RetroArch, Lutris, Heroic, noVNC). Connect with Moonlight.
+home: https://github.com/csaki89/amd-game-stream
+host_mounts: []
+icon: https://raw.githubusercontent.com/LizardByte/Sunshine/master/sunshine.png
+keywords:
+- gaming
+- streaming
+- sunshine
+- moonlight
+- steam
+- amd
+lib_version: 2.3.15
+lib_version_hash: ''
+maintainers:
+- email: csaki89@gmail.com
+  name: csaki89
+  url: https://github.com/csaki89
+name: amd-game-stream
+run_as_context:
+- description: Container [amd-game-stream] starts as root and drops to the configured user/group.
+  gid: 0
+  group_name: Host group is [root]
+  uid: 0
+  user_name: Host user is [root]
+screenshots: []
+sources:
+- https://github.com/csaki89/amd-game-stream
+title: AMD Game Stream
+train: community
+version: 1.0.0
