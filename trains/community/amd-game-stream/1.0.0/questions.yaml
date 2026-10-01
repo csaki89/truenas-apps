@@ -1,0 +1,391 @@
+groups:
+  - name: Game Stream Configuration
+    description: Configure image, GPU, Sunshine, VNC and Steam
+  - name: User and Group Configuration
+    description: Configure User and Group for AMD Game Stream
+  - name: Network Configuration
+    description: Configure Network for AMD Game Stream
+  - name: Storage Configuration
+    description: Configure Storage for AMD Game Stream
+  - name: Resources Configuration
+    description: Configure Resources for AMD Game Stream
+
+questions:
+  - variable: TZ
+    group: Game Stream Configuration
+    label: Timezone
+    schema:
+      type: string
+      default: Etc/UTC
+      required: true
+      $ref:
+        - definitions/timezone
+
+  - variable: amd_game_stream
+    label: ""
+    group: Game Stream Configuration
+    schema:
+      type: dict
+      attrs:
+        - variable: image
+          label: Image
+          description: Use a locally built image or pull one from a registry.
+          schema:
+            type: dict
+            attrs:
+              - variable: repository
+                label: Repository
+                description: Image repository, e.g. amd-game-stream (local build) or ghcr.io/user/amd-game-stream.
+                schema:
+                  type: string
+                  default: amd-game-stream
+                  required: true
+              - variable: tag
+                label: Tag
+                schema:
+                  type: string
+                  default: 1.0.0
+                  required: true
+              - variable: pull_policy
+                label: Pull Policy
+                description: |
+                  Never: use the local image only (locally built image).</br>
+                  Missing: pull only if the image is not present.</br>
+                  Always: always pull from the registry.
+                schema:
+                  type: string
+                  default: never
+                  required: true
+                  enum:
+                    - value: never
+                      description: Never (locally built image)
+                    - value: missing
+                      description: Pull if missing
+                    - value: always
+                      description: Always pull
+        - variable: amd_gpu_pci
+          label: AMD GPU PCI Address
+          description: |
+            PCI address of the card to stream from, e.g. 0000:86:00.0.</br>
+            Leave empty to use the amdgpu card with the most VRAM.
+          schema:
+            type: string
+            default: ""
+        - variable: sunshine_user
+          label: Sunshine Username
+          schema:
+            type: string
+            default: admin
+            required: true
+        - variable: sunshine_pass
+          label: Sunshine Password
+          schema:
+            type: string
+            private: true
+            required: true
+        - variable: user_password
+          label: User Password
+          description: Password of the default user inside the container. Leave empty to keep it unset.
+          schema:
+            type: string
+            private: true
+            default: ""
+        - variable: steam_args
+          label: Steam Args
+          description: Extra Steam launch arguments, e.g. -bigpicture -silent.
+          schema:
+            type: string
+            default: -silent
+        - variable: shm_size
+          label: SHM Size (MB)
+          description: Shared memory size. Steam/Proton needs a large value.
+          schema:
+            type: int
+            default: 8192
+            min: 64
+            required: true
+        - variable: enable_vnc
+          label: Enable VNC / noVNC
+          schema:
+            type: boolean
+            default: true
+        - variable: vnc_password
+          label: VNC Password
+          description: |
+            Only the first 8 characters count (VNC limit).</br>
+            Leave empty for NO password.
+          schema:
+            type: string
+            private: true
+            default: ""
+            show_if: [["enable_vnc", "=", true]]
+        - variable: steam_autostart
+          label: Steam Autostart
+          description: Keep Steam running in the background.
+          schema:
+            type: boolean
+            default: true
+        - variable: enable_romm_sync
+          label: Enable RomM Sync
+          description: |
+            Runs the RomM watch service. Pairing is a one-time manual step, run it after the first start:</br>
+            docker exec &lt;container&gt; romm-sync pair --url URL --code XXXX
+          schema:
+            type: boolean
+            default: false
+        - variable: additional_envs
+          label: Additional Environment Variables
+          schema:
+            type: list
+            default: []
+            items:
+              - variable: env
+                label: Environment Variable
+                schema:
+                  type: dict
+                  attrs:
+                    - variable: name
+                      label: Name
+                      schema:
+                        type: string
+                        required: true
+                    - variable: value
+                      label: Value
+                      schema:
+                        type: string
+
+  - variable: run_as
+    label: ""
+    group: User and Group Configuration
+    schema:
+      type: dict
+      attrs:
+        - variable: user
+          label: User ID
+          description: The user id the streaming session runs as (PUID).
+          schema:
+            type: int
+            min: 2
+            default: 568
+            required: true
+        - variable: group
+          label: Group ID
+          description: The group id the streaming session runs as (PGID).
+          schema:
+            type: int
+            min: 2
+            default: 568
+            required: true
+
+  - variable: network
+    label: ""
+    group: Network Configuration
+    schema:
+      type: dict
+      attrs:
+        - variable: host_network
+          label: Host Network
+          description: Required for Sunshine/Moonlight discovery. Always enabled.
+          schema:
+            type: boolean
+            default: true
+            hidden: true
+        - variable: sunshine_port
+          label: Sunshine Web UI Port (informational)
+          description: |
+            The Sunshine ports are fixed in the image and the host network is used,
+            so this only sets the Web UI link.
+          schema:
+            type: int
+            default: 47990
+            min: 1
+            max: 65535
+            required: true
+        - variable: vnc_port
+          label: VNC Port
+          description: Port of the VNC server (PORT_VNC).
+          schema:
+            type: int
+            default: 5900
+            min: 1
+            max: 65535
+            required: true
+        - variable: novnc_port
+          label: noVNC Port
+          description: Port of the browser-based noVNC (PORT_NOVNC).
+          schema:
+            type: int
+            default: 6080
+            min: 1
+            max: 65535
+            required: true
+
+  - variable: storage
+    label: ""
+    group: Storage Configuration
+    schema:
+      type: dict
+      attrs:
+        - variable: home
+          label: Home Storage
+          description: Mounted to /home/default (Steam, Sunshine config, saves).
+          schema:
+            type: dict
+            attrs:
+              - variable: type
+                label: Type
+                schema:
+                  type: string
+                  default: host_path
+                  hidden: true
+                  enum:
+                    - value: host_path
+                      description: Host Path (path that already exists on the system)
+              - variable: host_path_config
+                label: Host Path Configuration
+                schema:
+                  type: dict
+                  attrs:
+                    - variable: acl_enable
+                      label: Enable ACL
+                      description: Enable ACL for the storage.
+                      schema:
+                        type: boolean
+                        default: false
+                    - variable: acl
+                      label: ACL Configuration
+                      schema:
+                        type: dict
+                        show_if: [["acl_enable", "=", true]]
+                        attrs: []
+                        $ref:
+                          - "normalize/acl"
+                    - variable: path
+                      label: Host Path
+                      description: The host path to mount.
+                      schema:
+                        type: hostpath
+                        show_if: [["acl_enable", "=", false]]
+                        required: true
+        - variable: games
+          label: Games Storage
+          description: Optional. Mounted to /mnt/games.
+          schema:
+            type: dict
+            attrs:
+              - variable: enabled
+                label: Enable
+                description: Mount this storage into the container.
+                schema:
+                  type: boolean
+                  default: false
+              - variable: type
+                label: Type
+                schema:
+                  type: string
+                  default: host_path
+                  hidden: true
+                  enum:
+                    - value: host_path
+                      description: Host Path (path that already exists on the system)
+              - variable: host_path_config
+                label: Host Path Configuration
+                schema:
+                  type: dict
+                  show_if: [["enabled", "=", true]]
+                  attrs:
+                    - variable: acl_enable
+                      label: Enable ACL
+                      description: Enable ACL for the storage.
+                      schema:
+                        type: boolean
+                        default: false
+                    - variable: acl
+                      label: ACL Configuration
+                      schema:
+                        type: dict
+                        show_if: [["acl_enable", "=", true]]
+                        attrs: []
+                        $ref:
+                          - "normalize/acl"
+                    - variable: path
+                      label: Host Path
+                      description: The host path to mount.
+                      schema:
+                        type: hostpath
+                        show_if: [["acl_enable", "=", false]]
+                        required: true
+        - variable: roms
+          label: ROMs Storage
+          description: Optional. Mounted to /mnt/roms (RetroArch).
+          schema:
+            type: dict
+            attrs:
+              - variable: enabled
+                label: Enable
+                description: Mount this storage into the container.
+                schema:
+                  type: boolean
+                  default: false
+              - variable: type
+                label: Type
+                schema:
+                  type: string
+                  default: host_path
+                  hidden: true
+                  enum:
+                    - value: host_path
+                      description: Host Path (path that already exists on the system)
+              - variable: host_path_config
+                label: Host Path Configuration
+                schema:
+                  type: dict
+                  show_if: [["enabled", "=", true]]
+                  attrs:
+                    - variable: acl_enable
+                      label: Enable ACL
+                      description: Enable ACL for the storage.
+                      schema:
+                        type: boolean
+                        default: false
+                    - variable: acl
+                      label: ACL Configuration
+                      schema:
+                        type: dict
+                        show_if: [["acl_enable", "=", true]]
+                        attrs: []
+                        $ref:
+                          - "normalize/acl"
+                    - variable: path
+                      label: Host Path
+                      description: The host path to mount.
+                      schema:
+                        type: hostpath
+                        show_if: [["acl_enable", "=", false]]
+                        required: true
+
+  - variable: resources
+    label: ""
+    group: Resources Configuration
+    schema:
+      type: dict
+      attrs:
+        - variable: limits
+          label: Limits
+          schema:
+            type: dict
+            attrs:
+              - variable: cpus
+                label: CPUs
+                description: CPU limit (cores).
+                schema:
+                  type: int
+                  default: 4
+                  required: true
+              - variable: memory
+                label: Memory (in MB)
+                description: Memory limit.
+                schema:
+                  type: int
+                  default: 8192
+                  required: true

@@ -1,0 +1,48 @@
+resources:
+  limits:
+    cpus: 4
+    memory: 8192
+
+TZ: Etc/UTC
+
+amd_game_stream:
+  image:
+    repository: amd-game-stream
+    tag: 1.0.0
+    pull_policy: never
+  amd_gpu_pci: ""
+  sunshine_user: admin
+  sunshine_pass: change-me
+  enable_vnc: true
+  vnc_password: ""
+  steam_autostart: true
+  enable_romm_sync: false
+  user_password: ""
+  steam_args: -silent
+  shm_size: 8192
+  additional_envs: []
+
+network:
+  host_network: true
+  sunshine_port: 47990
+  vnc_port: 5900
+  novnc_port: 6080
+
+run_as:
+  user: 568
+  group: 568
+
+storage:
+  home:
+    type: host_path
+    host_path_config:
+      acl_enable: false
+      path: /opt/tests/mnt/home
+  games:
+    enabled: true
+    type: host_path
+    host_path_config:
+      acl_enable: false
+      path: /opt/tests/mnt/games
+  roms:
+    enabled: false
