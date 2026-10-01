@@ -58,6 +58,10 @@
   {% do c1.add_storage("/mnt/roms", values.storage.roms) %}
 {% endif %}
 
+{# Sunshine web UI listens on the fixed port 47990 (not the informational form value). #}
+{% do c1.healthcheck.set_test("tcp", {"port": 47990}) %}
+{% do c1.healthcheck.set_start_period(120) %}
+
 {# Host network: ports are not published, so the portal is informational only. #}
 {% do tpl.portals.add(
   {"bind_mode": "published"},
