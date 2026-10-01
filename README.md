@@ -44,5 +44,5 @@ Docker kell hozzá:
 
 ```
 docker run --rm -e FAKE_ENV=1 -v "$PWD:/workspace" ghcr.io/truenas/apps_validation:latest apps_catalog_hash_generate --path /workspace
-docker run --rm -e FAKE_ENV=1 -v "$PWD:/workspace" ghcr.io/truenas/apps_validation:latest apps_dev_charts_validate validate --path /workspace --base-branch 4b825dc642cb6eb9a060e54bf8d69288fbee4904
+# (a validátor a master-hez képest változott appokat nézi; lásd a workflow-t)
 ```
