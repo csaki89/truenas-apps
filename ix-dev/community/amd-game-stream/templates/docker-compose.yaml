@@ -29,8 +29,6 @@
 {# Sunshine's virtual input devices (major 13) appear after container start. #}
 {% do c1.add_device_cgroup_rule("c 13:* rwm") %}
 
-{% do c1.environment.add_env("PUID", values.run_as.user) %}
-{% do c1.environment.add_env("PGID", values.run_as.group) %}
 {% do c1.environment.add_env("SUNSHINE_USER", values.amd_game_stream.sunshine_user) %}
 {% do c1.environment.add_env("SUNSHINE_PASS", values.amd_game_stream.sunshine_pass) %}
 {% do c1.environment.add_env("ENABLE_VNC", values.amd_game_stream.enable_vnc) %}
