@@ -27,7 +27,7 @@
 {% do c1.devices.add_device("/dev/uinput", "/dev/uinput") %}
 {% do c1.devices.add_device("/dev/input", "/dev/input") %}
 {# Sunshine's virtual input devices (major 13) appear after container start. #}
-{% do c1.add_device_cgroup_rule("c 13:* rmw") %}
+{% do c1.add_device_cgroup_rule("c 13:* rwm") %}
 
 {% do c1.environment.add_env("PUID", values.run_as.user) %}
 {% do c1.environment.add_env("PGID", values.run_as.group) %}
