@@ -13,6 +13,7 @@ on:
     paths:
       - ix-dev/**
       - library/**
+      - .github/workflows/update-catalog.yaml
   workflow_dispatch:
 
 permissions:
