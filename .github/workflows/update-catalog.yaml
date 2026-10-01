@@ -42,7 +42,10 @@ jobs:
         run: |
           # The validator only checks apps changed relative to "master". Point a local
           # master at an empty commit so that every app counts as changed.
-          git branch -f master "$(git commit-tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904 -m empty)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          empty_tree="$(git hash-object -t tree -w /dev/null)"
+          git branch -f master "$(git commit-tree "$empty_tree" -m empty)"
           if ! /usr/local/bin/apps_dev_charts_validate validate --path "$GITHUB_WORKSPACE" > validate.log 2>&1; then
             cat validate.log
             # Mirror the output into an annotation (visible without log access)
