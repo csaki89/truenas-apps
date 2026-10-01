@@ -1,0 +1,51 @@
+{
+    "stable": {},
+    "community": {
+        "amd-game-stream": {
+            "app_readme": "<h1>AMD Game Stream</h1> <p>Headless game streaming on an AMD GPU: Xorg + amdgpu + DRI3, Sunshine (VA-API), Steam, RetroArch, Lutris, Heroic and noVNC.</p> <p>Image source: https://github.com/csaki89/amd-game-stream</p> <p>The container uses the host network (needed for Sunshine/Moonlight discovery). <code>/dev/dri</code> is passed through the Devices section, never as a bind mount.</p>",
+            "categories": [
+                "games"
+            ],
+            "description": "Headless game streaming on an AMD GPU (Xorg + amdgpu + DRI3, Sunshine, Steam, RetroArch, Lutris, Heroic, noVNC). Connect with Moonlight.",
+            "healthy": true,
+            "healthy_error": null,
+            "home": "https://github.com/csaki89/amd-game-stream",
+            "location": "/__w/truenas-apps/truenas-apps/trains/community/amd-game-stream",
+            "latest_version": "1.0.0",
+            "latest_app_version": "1.0.0",
+            "latest_human_version": "1.0.0",
+            "last_update": "2026-10-01 19:08:07",
+            "name": "amd-game-stream",
+            "recommended": false,
+            "title": "AMD Game Stream",
+            "maintainers": [
+                {
+                    "email": "csaki89@gmail.com",
+                    "name": "csaki89",
+                    "url": "https://github.com/csaki89"
+                }
+            ],
+            "tags": [
+                "gaming",
+                "streaming",
+                "sunshine",
+                "moonlight"
+            ],
+            "screenshots": [],
+            "sources": [
+                "https://github.com/csaki89/amd-game-stream"
+            ],
+            "icon_url": "https://raw.githubusercontent.com/LizardByte/Sunshine/master/sunshine.png",
+            "capabilities": [],
+            "run_as_context": [
+                {
+                    "description": "Container [amd-game-stream] starts as root and drops to the configured user/group.",
+                    "gid": 0,
+                    "group_name": "Host group is [root]",
+                    "uid": 0,
+                    "user_name": "Host user is [root]"
+                }
+            ]
+        }
+    }
+}
