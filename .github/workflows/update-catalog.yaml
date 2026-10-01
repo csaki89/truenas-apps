@@ -39,7 +39,7 @@ jobs:
         run: /usr/local/bin/apps_catalog_hash_generate --path "$GITHUB_WORKSPACE"
       - name: Validate apps
         run: |
-          if ! /usr/local/bin/apps_dev_charts_validate validate --path "$GITHUB_WORKSPACE" > validate.log 2>&1; then
+          if ! /usr/local/bin/apps_dev_charts_validate validate --path "$GITHUB_WORKSPACE" --base-branch 4b825dc642cb6eb9a060e54bf8d69288fbee4904 > validate.log 2>&1; then
             cat validate.log
             # Mirror the output into an annotation (visible without log access)
             msg="$(head -c 3500 validate.log | sed -e "s/%/%25/g" | awk '{printf "%s%%0A", $0}')"
